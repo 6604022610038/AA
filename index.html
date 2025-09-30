@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyChatApp</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Kanit', sans-serif; background:#e5ddd5; }
+
+/* Header */
+header { background:#00c300; color:white; padding:15px 20px; font-size:1.4em; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+
+/* Login/Register */
+#loginArea {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:calc(100vh - 50px); gap:10px; background:rgba(255,255,255,0.9);
+}
+#loginArea input { padding:10px 12px; width:200px; border-radius:8px; border:1px solid #ccc; font-size:1em; }
+#loginArea button { padding:10px 20px; border-radius:8px; border:none; background:#00c300; color:white; font-weight:bold; cursor:pointer; transition:0.3s; }
+#loginArea button:hover { background:#009900; }
+
+/* Chat Container */
+.container { 
+    display:flex; 
+    height:calc(100vh - 50px); 
+    max-width:1200px; 
+    margin:0 auto; 
+    background:white;
+}
+
+/* Sidebar (Room List) */
+.sidebar { 
+    width:300px; 
+    padding:15px; 
+    background:#f8f8f8; 
+    border-right:1px solid #eee; 
+    display:flex; 
+    flex-direction:column;
+}
+
+.sidebar input { padding:10px; border:1px solid #ccc; border-radius:8px; margin-bottom:10px; }
+.sidebar button { padding:10px; border-radius:8px; border:none; background:#0084ff; color:white; font-weight:bold; cursor:pointer; transition:0.3s; }
+.sidebar button:hover { background:#0069cc; }
+
+/* Room List */
+#roomList {
+    flex:1; 
+    overflow-y:auto; 
+    margin-top:15px;
+    padding: 0 10px 10px 10px;
+}
+
+/* **New: Clickable Room Item Style** */
+.room-item {
+    padding: 10px 12px;
+    margin-bottom: 5px;
+    background: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: #333;
+    border: 1px solid #e0e0e0;
+}
+
+.room-item:hover {
+    background: #e0f7e0;
+    color: #008400;
+    border-color: #c9e6c9;
+}
+/* Room Selected Style (ใช้ใน JS) */
+.room-item.selected {
+    background: #0084ff;
+    color: white;
+    border-color: #0069cc;
+    font-weight: bold;
+}
+
+/* Chat Area */
+.chat-area { flex:1; display:flex; flex-direction:column; background:#f0f0f0; }
+
+/* Messages Container */
+#messages { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+
+/* Message Bubble Base Style */
+.message { 
+    max-width:75%; 
+    padding:8px 12px; 
+    border-radius:18px; 
+    position:relative;
+    word-wrap: break-word;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+/* My Messages (ข้อความที่ฉันส่ง) */
+.my-message {
+    align-self:flex-end;
+    background:#00c300; 
+    color:white;
+    border-bottom-right-radius: 4px;
+}
+
+/* Other Messages (ข้อความที่ผู้อื่นส่ง) */
+.other-message {
+    align-self:flex-start;
+    background:white;
+    color:#333;
+    border-bottom-left-radius: 4px;
+}
+
+/* Sender Name */
+.message-sender {
+    font-size:0.75em;
+    font-weight:bold;
+    margin-bottom:2px;
+    opacity:0.8;
+}
+
+.my-message .message-sender {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.other-message .message-sender {
+    color: #0084ff;
+}
+
+/* Input Area */
+.input-area { 
+    padding:10px; 
+    border-top:1px solid #eee; 
+    display:flex; 
+    gap:10px; 
+    background:white;
+}
+.input-area input[type="text"] { 
+    flex:1; padding:10px 15px; border-radius:20px; border:1px solid #ccc; font-size:1em; 
+}
+.input-area button { 
+    padding:10px 20px; border-radius:20px; border:none; background:#00c300; color:white; font-weight:bold; cursor:pointer; transition:0.3s; 
+}
+.input-area button:hover { background:#009900; }
+
+/* Scrollbar */
+#messages::-webkit-scrollbar, .sidebar::-webkit-scrollbar { width:6px; }
+#messages::-webkit-scrollbar-thumb, .sidebar::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.2); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<header>MyChatApp</header>
+
+<div id="loginArea">
+    <input type="text" id="username" placeholder="ชื่อผู้ใช้">
+    <input type="password" id="password" placeholder="รหัสผ่าน">
+    <button id="loginBtn">เข้าสู่ระบบ</button>
+    <button id="registerBtn">สมัครสมาชิก</button>
+</div>
+
+<div class="container" id="chatContainer" style="display:none;">
+    <div class="sidebar">
+        <input type="text" id="roomInput" placeholder="พิมพ์ชื่อห้องใหม่">
+        <button id="createRoomBtn">สร้าง/เข้าร่วมห้อง</button>
+        <div id="roomList"></div>
+    </div>
+    <div class="chat-area">
+        <div id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="พิมพ์ข้อความ...">
+            <button id="sendBtn">ส่ง</button>
+            </div>
+    </div>
+</div>
+
+<script src="renderer.js"></script>
+</body>
+</html>
